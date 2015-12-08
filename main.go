@@ -6,7 +6,9 @@ import (
 	"os"
 	pathpkg "path"
 	"strings"
+	"time"
 )
+
 
 func main() {
 	pwd, err := os.Getwd()
@@ -55,7 +57,17 @@ func main() {
 	rpath := *srcpath
 	rpathDir := pathpkg.Dir(*dstpath)
 
-	// TODO: refactor the following part...
+	debouncedEvents := make(chan syncData)
+	allEvents := debounceChannel(300*time.Millisecond, debouncedEvents)
+
+	go func() int {
+		for {
+			select {
+			case data, _ := <-debouncedEvents:
+				Sync(data.via, data.port, data.src, data.dst, true)
+			}
+		}
+	}()
 
 	if strings.HasPrefix(via, "rsync://") {
 		// use rsync protocol directly
@@ -67,7 +79,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(rsyncEndpoint, 0, rpath, rpathDir, true)
+				allEvents<-syncData{rsyncEndpoint, 0, rpath, rpathDir, true}
 			})
 		}
 
@@ -89,7 +101,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(machineName, port, rpath, rpathDir, true)
+				allEvents<-syncData{machineName, port, rpath, rpathDir, true}
 			})
 		}
 	}
