@@ -22,7 +22,6 @@ func Sync(via string, port uint, src, dst string, verbose bool) {
 		"--delete",
 		"--force",
 		"--executability",
-		"--compress",
 	}
 
 	ripath := getRsyncIgnorePath()

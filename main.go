@@ -60,10 +60,13 @@ func main() {
 	debouncedEvents := make(chan syncData)
 	allEvents := debounceChannel(300*time.Millisecond, debouncedEvents)
 
-	go func() int {
+	go func() {
 		for {
 			select {
-			case data, _ := <-debouncedEvents:
+			case data, ok := <-debouncedEvents:
+				if !ok {
+					return
+				}
 				Sync(data.via, data.port, data.src, data.dst, true)
 			}
 		}
