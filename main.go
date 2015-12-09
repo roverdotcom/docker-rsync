@@ -64,9 +64,9 @@ func main() {
 		for {
 			select {
 			case data, ok := <-debouncedEvents:
-        if !ok {
-          return
-        }
+		        if !ok {
+		          return
+		        }
 				Sync(data.via, data.port, data.src, data.dst, true)
 			}
 		}
