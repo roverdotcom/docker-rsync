@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 func main() {
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -82,7 +81,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				allEvents<-syncData{rsyncEndpoint, 0, rpath, rpathDir, true}
+				allEvents <- syncData{rsyncEndpoint, 0, rpath, rpathDir, true}
 			})
 		}
 
@@ -104,7 +103,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				allEvents<-syncData{machineName, port, rpath, rpathDir, true}
+				allEvents <- syncData{machineName, port, rpath, rpathDir, true}
 			})
 		}
 	}
