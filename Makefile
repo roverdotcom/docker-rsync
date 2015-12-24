@@ -15,7 +15,7 @@ install:
 	godep go install
 
 test:
-	GOTEST=1 godep go test -v dockermachine*
+	GOTEST=1 go test -v dockermachine*
 
 
 .PHONY: build clean test install
