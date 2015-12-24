@@ -95,6 +95,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		Provision(machineName, *verbose)
 		RunSSHCommand(machineName, "sudo mkdir -p "+rpathDir, *verbose)
 		fmt.Printf("Syncing %s (local) to %s (docker-machine %s)\n", *srcpath, *dstpath, machineName)
 		Sync(machineName, port, rpath, rpathDir, *verbose) // initial sync
