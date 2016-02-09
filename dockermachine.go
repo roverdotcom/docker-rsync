@@ -7,8 +7,25 @@ import (
 	"os/exec"
 )
 
+func needsProvisioning(machineName string, verbose bool) bool {
+	checkCommands := []string{
+		`which rsync attr`,
+	}
+
+	for _, command := range checkCommands {
+		if _, err := RunSSHCommand(machineName, command, verbose); err != nil {
+			if verbose {
+				fmt.Println("Provisioning the docker-machine")
+			}
+			return true
+		}
+	}
+
+	return false
+}
+
 func Provision(machineName string, verbose bool) {
-	if _, err := RunSSHCommand(machineName, "which rsync", verbose); err != nil {
+	if needsProvisioning(machineName, verbose) {
 		installCommands := []string{
 			// install and run rsync daemon
 			`tce-load -wi rsync attr acl`,
