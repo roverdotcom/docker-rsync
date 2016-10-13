@@ -62,10 +62,7 @@ func main() {
 
 	go func() {
 		for {
-			data, ok := <-debouncedEvents
-			if !ok {
-				continue
-			}
+			data := <-debouncedEvents
 			Sync(data.via, data.c, data.src, data.dst, data.verbose)
 		}
 	}()
