@@ -57,15 +57,23 @@ func main() {
 	rpathDir := pathpkg.Dir(*dstpath)
 
 	// TODO: refactor the following part...
-	debouncedEvents := make(chan syncData)
-	allEvents := debounceChannel(300*time.Millisecond, debouncedEvents)
 
-	go func() {
-		for {
-			data := <-debouncedEvents
-			Sync(data.via, data.c, data.src, data.dst, data.verbose)
-		}
-	}()
+	var debouncedEvents chan syncData
+	var allEvents chan syncData
+
+	// If watching set up the debounced channel and listen
+	if *watch {
+		debouncedEvents = make(chan syncData)
+		allEvents = debounceChannel(300*time.Millisecond, debouncedEvents)
+
+		// Perform a Sync when we get a message on the debounced channel
+		go func() {
+			for {
+				data := <-debouncedEvents
+				Sync(data.via, data.c, data.src, data.dst, data.verbose)
+			}
+		}()
+	}
 
 	if strings.HasPrefix(via, "rsync://") {
 		// use rsync protocol directly
