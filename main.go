@@ -6,6 +6,7 @@ import (
 	"os"
 	pathpkg "path"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -56,6 +57,18 @@ func main() {
 	rpathDir := pathpkg.Dir(*dstpath)
 
 	// TODO: refactor the following part...
+	debouncedEvents := make(chan syncData)
+	allEvents := debounceChannel(300*time.Millisecond, debouncedEvents)
+
+	go func() {
+		for {
+			data, ok := <-debouncedEvents
+			if !ok {
+				continue
+			}
+			Sync(data.via, data.c, data.src, data.dst, data.verbose)
+		}
+	}()
 
 	if strings.HasPrefix(via, "rsync://") {
 		// use rsync protocol directly
@@ -67,7 +80,13 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(rsyncEndpoint, SSHCredentials{}, rpath, rpathDir, *verbose)
+				allEvents <- syncData{
+					via:     rsyncEndpoint,
+					c:       SSHCredentials{},
+					src:     rpath,
+					dst:     rpathDir,
+					verbose: *verbose,
+				}
 			})
 		}
 
@@ -89,7 +108,13 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(machineName, c, rpath, rpathDir, *verbose)
+				allEvents <- syncData{
+					via:     machineName,
+					c:       c,
+					src:     rpath,
+					dst:     rpathDir,
+					verbose: *verbose,
+				}
 			})
 		}
 	}
