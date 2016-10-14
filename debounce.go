@@ -2,7 +2,8 @@ package main
 
 import "time"
 
-type syncData struct {
+// SyncData holds data to be used in the method signature of Sync
+type SyncData struct {
 	via     string
 	c       SSHCredentials
 	src     string
