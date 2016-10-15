@@ -28,6 +28,7 @@ func main() {
 	var verbose = flag.Bool("verbose", false, "Verbose output")
 	var srcpath = flag.String("src", pwd, "Source directory")
 	var dstpath = flag.String("dst", pathpkg.Join("/rsync", pwd), "Destination directory")
+	var debounce = flag.Int64("debounce-interval", 0, "This is rad")
 
 	flag.Parse()
 
