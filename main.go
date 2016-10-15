@@ -6,6 +6,7 @@ import (
 	"os"
 	pathpkg "path"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 	var verbose = flag.Bool("verbose", false, "Verbose output")
 	var srcpath = flag.String("src", pwd, "Source directory")
 	var dstpath = flag.String("dst", pathpkg.Join("/rsync", pwd), "Destination directory")
+	var debounce = flag.Int64("debounce-interval", 0, "This is rad")
 
 	flag.Parse()
 
@@ -57,6 +59,23 @@ func main() {
 
 	// TODO: refactor the following part...
 
+	var debouncedEvents chan SyncData
+	var allEvents chan SyncData
+
+	// If watching set up the debounced channel and listen
+	if *watch {
+		debouncedEvents = make(chan SyncData)
+		allEvents = debounceChannel(300*time.Millisecond, debouncedEvents)
+
+		// Perform a Sync when we get a message on the debounced channel
+		go func() {
+			for {
+				data := <-debouncedEvents
+				Sync(data.via, data.c, data.src, data.dst, data.verbose)
+			}
+		}()
+	}
+
 	if strings.HasPrefix(via, "rsync://") {
 		// use rsync protocol directly
 		rsyncEndpoint := via
@@ -67,7 +86,13 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(rsyncEndpoint, SSHCredentials{}, rpath, rpathDir, *verbose)
+				allEvents <- SyncData{
+					via:     rsyncEndpoint,
+					c:       SSHCredentials{},
+					src:     rpath,
+					dst:     rpathDir,
+					verbose: *verbose,
+				}
 			})
 		}
 
@@ -89,7 +114,13 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				Sync(machineName, c, rpath, rpathDir, *verbose)
+				allEvents <- SyncData{
+					via:     machineName,
+					c:       c,
+					src:     rpath,
+					dst:     rpathDir,
+					verbose: *verbose,
+				}
 			})
 		}
 	}
