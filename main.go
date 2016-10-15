@@ -58,12 +58,12 @@ func main() {
 
 	// TODO: refactor the following part...
 
-	var debouncedEvents chan syncData
-	var allEvents chan syncData
+	var debouncedEvents chan SyncData
+	var allEvents chan SyncData
 
 	// If watching set up the debounced channel and listen
 	if *watch {
-		debouncedEvents = make(chan syncData)
+		debouncedEvents = make(chan SyncData)
 		allEvents = debounceChannel(300*time.Millisecond, debouncedEvents)
 
 		// Perform a Sync when we get a message on the debounced channel
@@ -85,7 +85,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				allEvents <- syncData{
+				allEvents <- SyncData{
 					via:     rsyncEndpoint,
 					c:       SSHCredentials{},
 					src:     rpath,
@@ -113,7 +113,7 @@ func main() {
 		if *watch {
 			fmt.Println("Watching for file changes ...")
 			Watch(rpath, func(id uint64, path string, flags []string) {
-				allEvents <- syncData{
+				allEvents <- SyncData{
 					via:     machineName,
 					c:       c,
 					src:     rpath,

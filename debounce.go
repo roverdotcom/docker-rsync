@@ -11,11 +11,11 @@ type SyncData struct {
 	verbose bool
 }
 
-func debounceChannel(interval time.Duration, output chan syncData) chan syncData {
-	input := make(chan syncData)
+func debounceChannel(interval time.Duration, output chan SyncData) chan SyncData {
+	input := make(chan SyncData)
 
 	go func() {
-		var buffer syncData
+		var buffer SyncData
 		var ok bool
 
 		// We do not start waiting for interval until called at least once
